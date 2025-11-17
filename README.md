@@ -1,6 +1,6 @@
 # MC服务器管理系统
 
-一个基于 Node.js 的 Minecraft 服务器管理与展示系统，联动 MC-API 实现服务器状态实时监控与可视化管理。
+一个基于 Node.js 的 Minecraft 服务器管理与展示系统，联动 MC-API（https://github.com/WEIWU-001/MC-API） 实现服务器状态实时监控与可视化管理。
 
 ## 核心功能
 - 📋 前端展示：服务器列表、在线状态、玩家数量、版本信息
