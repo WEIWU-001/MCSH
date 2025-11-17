@@ -16,7 +16,13 @@
 - 依赖：cors、node-fetch、nodemailer、nodemon 等
 
 ## 文件结构
-├── public/ # 前端页面目录│ ├── index.html # 用户端：服务器列表展示页│ └── admin.html # 管理员端：服务器管理后台├── data/ # 数据存储目录│ └── db.json # 服务器信息存储文件├── server.js # 后端服务入口（接口 + 逻辑处理）└── package.json # 项目依赖与脚本配置
+├── public/ # 前端页面目录
+│ ├── index.html # 用户端：服务器列表展示页
+│ └── admin.html # 管理员端：服务器管理后台
+├── data/ # 数据存储目录
+│ └── db.json # 服务器信息存储文件
+├── server.js # 后端服务入口（接口 + 逻辑处理）
+└── package.json # 项目依赖与脚本配置
 
 ## 快速使用
 1. 克隆项目并进入目录
