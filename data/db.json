@@ -1,0 +1,13 @@
+{
+  "servers": [
+    {
+      "id": "1763304314500",
+      "name": "工匠",
+      "host": "play.simpfun.cn",
+      "port": 15091,
+      "description": "",
+      "contact": "776423792",
+      "createdAt": "2025-11-16T14:45:14.500Z"
+    }
+  ]
+}

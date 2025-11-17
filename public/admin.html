@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft服务器管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4a6cf7;
+      --primary-light: #6b85f8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray: #94a3b8;
+      --border: #e2e8f0;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+    
+    body {
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.6;
+      padding: 30px 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    /* 登录遮罩层样式 */
+    #loginOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    .login-box h2 {
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+    
+    .login-box p {
+      color: var(--gray);
+      margin-bottom: 25px;
+      font-size: 0.95rem;
+    }
+    
+    .login-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      transition: var(--transition);
+      text-align: center;
+      letter-spacing: 5px;
+      font-size: 1.2rem;
+    }
+    
+    .login-input:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+    }
+    
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 15px;
+    }
+    
+    .login-btn:hover {
+      background: var(--primary-light);
+    }
+    
+    .login-btn:disabled {
+      background: var(--gray);
+      cursor: not-allowed;
+    }
+    
+    .login-btn.secondary {
+      background: var(--success);
+    }
+    
+    .login-btn.secondary:hover {
+      background: #16a34a;
+    }
+    
+    .login-error {
+      color: var(--danger);
+      margin-top: 10px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .login-success {
+      color: var(--success);
+      margin-top: 10px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .countdown {
+      color: var(--gray);
+      font-size: 0.85rem;
+      margin-top: 10px;
+    }
+    
+    .refresh-link {
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 0.9rem;
+    }
+    
+    .refresh-link:hover {
+      color: var(--primary-light);
+    }
+    
+    /* 主内容区域 - 默认隐藏 */
+    #mainContent {
+      display: none;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 1.8rem;
+    }
+    
+    .header-desc {
+      color: var(--gray);
+      font-size: 1rem;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+      border-top: 3px solid var(--primary);
+    }
+    
+    .card h2 {
+      color: var(--dark);
+      margin-bottom: 20px;
+      font-weight: 500;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .card h2 i {
+      color: var(--primary);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #475569;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+    
+    input, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: var(--transition);
+      background-color: var(--light);
+    }
+    
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1);
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .form-hint {
+      font-size: 0.85rem;
+      color: var(--gray);
+      margin-top: 5px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-2px);
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .server-list {
+      margin-top: 20px;
+    }
+    
+    .server-item {
+      padding: 15px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+    }
+    
+    .server-item:hover {
+      background-color: #f8fafc;
+      transform: translateX(5px);
+    }
+    
+    .server-item:last-child {
+      border-bottom: none;
+    }
+    
+    .server-info {
+      flex: 1;
+    }
+    
+    .server-name {
+      font-weight: 500;
+      color: var(--dark);
+      margin-bottom: 3px;
+      font-size: 1.05rem;
+    }
+    
+    .server-desc {
+      color: var(--gray);
+      font-size: 0.9rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .server-desc span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .server-desc i {
+      font-size: 0.8rem;
+    }
+    
+    .contact-tag {
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    /* 联系方式图标预览 */
+    .contact-preview {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .contact-preview-item {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--primary-light);
+      color: white;
+      font-size: 0.9rem;
+      cursor: default;
+    }
+    
+    .contact-preview-item.qq {
+      background-color: #1da1f2;
+    }
+    
+    .contact-preview-item.wechat {
+      background-color: #07c160;
+    }
+    
+    .contact-preview-item.website {
+      background-color: var(--success);
+    }
+    
+    .contact-preview-item.discord {
+      background-color: #5865f2;
+    }
+    
+    .message {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 500;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .success {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #dcfce7;
+    }
+    
+    .error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fee2e2;
+    }
+    
+    .empty {
+      text-align: center;
+      color: var(--gray);
+      padding: 30px 20px;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+    
+    .empty i {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 20px 0;
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-top: 40px;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 768px) {
+      .btn-group {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .server-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 登录遮罩层 -->
+  <div id="loginOverlay">
+    <div class="login-box">
+      <h2><i class="fas fa-lock"></i> 管理员登录</h2>
+      <p>验证码已发送到指定邮箱</p>
+      <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px;">
+        没有收到验证码？<span class="refresh-link" id="refreshCode">重新发送</span>
+      </p>
+      
+      <input type="text" id="codeInput" class="login-input" placeholder="请输入6位验证码" maxlength="6" autocomplete="off">
+      
+      <button id="verifyCodeBtn" class="login-btn secondary">
+        <i class="fas fa-sign-in-alt"></i> 登录
+      </button>
+      
+      <div id="loginError" class="login-error"></div>
+      <div id="loginSuccess" class="login-success"></div>
+      <div id="countdown" class="countdown"></div>
+    </div>
+  </div>
+
+  <!-- 主内容区域 -->
+  <div id="mainContent">
+    <div class="container">
+      <header>
+        <h1><i class="fas fa-cogs"></i> Minecraft服务器管理</h1>
+        <p class="header-desc">添加、编辑和管理你的MC服务器列表</p>
+      </header>
+      
+      <div id="message" class="message" style="display: none;"></div>
+
+      <div class="card">
+        <h2><i class="fas fa-plus-circle"></i> 添加新服务器</h2>
+        <form id="addServerForm">
+          <div class="form-group">
+            <label for="name">服务器名称*</label>
+            <input type="text" id="name" required placeholder="输入服务器名称（如：SimpFun服务器）">
+          </div>
+          <div class="form-group">
+            <label for="host">服务器地址*</label>
+            <input type="text" id="host" required placeholder="输入IP或域名（如：play.simpfun.cn）">
+          </div>
+          <div class="form-group">
+            <label for="port">服务器端口（默认25565）</label>
+            <input type="number" id="port" placeholder="输入端口（如：15091）" value="25565">
+          </div>
+          <div class="form-group">
+            <label for="description">服务器描述（可选）</label>
+            <textarea id="description" placeholder="输入服务器描述"></textarea>
+          </div>
+          <!-- 联系方式输入框 -->
+          <div class="form-group">
+            <label for="contact">服务器联系方式（可选）</label>
+            <input type="text" id="contact" placeholder="输入联系方式，多种方式用逗号分隔">
+            <div class="form-hint">
+              格式说明：<br>
+              • QQ号：直接输入数字，如 123456789<br>
+              • 微信：输入 wechat:微信号，如 wechat:mywechat<br>
+              • 网站：输入完整链接，如 https://example.com<br>
+              • Discord：输入 discord:服务器ID，如 discord:server123<br>
+              • 多种方式用逗号分隔，如 123456789,wechat:mywechat,https://example.com
+            </div>
+            <div id="contactPreview" class="contact-preview"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> 添加服务器
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2><i class="fas fa-server"></i> 已添加服务器</h2>
+        <div id="serverList" class="server-list">请先登录...</div>
+      </div>
+      
+      <footer>
+        <p>© 2025 Minecraft服务器管理 | 安全稳定</p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const API = {
+      getServers: '/api/servers',
+      addServer: '/api/servers',
+      updateServer: (id) => `/api/servers/${id}`,
+      deleteServer: (id) => `/api/servers/${id}`,
+      sendCode: '/api/send-verification-code',
+      verifyCode: '/api/verify-code'
+    };
+
+    let countdownTimer = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 页面加载时自动发送验证码
+      sendVerificationCode();
+      
+      // 登录相关事件
+      document.getElementById('verifyCodeBtn').addEventListener('click', verifyCode);
+      document.getElementById('refreshCode').addEventListener('click', sendVerificationCode);
+      
+      // 表单提交事件
+      document.getElementById('addServerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await addServer();
+      });
+      
+      // 联系方式输入实时预览
+      document.getElementById('contact').addEventListener('input', updateContactPreview);
+      
+      // 按回车键验证验证码
+      document.getElementById('codeInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          verifyCode();
+        }
+      });
+    });
+
+    // 发送验证码
+    async function sendVerificationCode() {
+      const sendBtn = document.getElementById('verifyCodeBtn');
+      const errorEl = document.getElementById('loginError');
+      const successEl = document.getElementById('loginSuccess');
+
+      hideLoginMessages();
+      startCountdown(60); // 60秒内不能重复发送
+
+      try {
+        const res = await fetch(API.sendCode, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await safeJsonParse(res);
+
+        if (result.success) {
+          showLoginSuccess('新的验证码已发送到指定邮箱');
+          document.getElementById('codeInput').value = '';
+          document.getElementById('codeInput').focus();
+        } else {
+          showLoginError(result.error || '发送验证码失败');
+        }
+      } catch (error) {
+        showLoginError('网络错误，请重试');
+      }
+    }
+
+    // 验证验证码
+    async function verifyCode() {
+      const code = document.getElementById('codeInput').value.trim();
+      const verifyBtn = document.getElementById('verifyCodeBtn');
+      const errorEl = document.getElementById('loginError');
+
+      if (!code) {
+        showLoginError('请输入验证码');
+        return;
+      }
+
+      if (code.length !== 6) {
+        showLoginError('验证码必须是6位数字');
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+      hideLoginMessages();
+
+      try {
+        const res = await fetch(API.verifyCode, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+
+        const result = await safeJsonParse(res);
+
+        if (result.success) {
+          // 登录成功
+          document.getElementById('loginOverlay').style.display = 'none';
+          document.getElementById('mainContent').style.display = 'block';
+          if (countdownTimer) clearInterval(countdownTimer);
+          // 加载服务器列表
+          fetchServers();
+        } else {
+          showLoginError(result.error || '验证码错误');
+          verifyBtn.disabled = false;
+          verifyBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录';
+        }
+      } catch (error) {
+        showLoginError('网络错误，请重试');
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登录';
+      }
+    }
+
+    // 开始倒计时
+    function startCountdown(seconds) {
+      let timeLeft = seconds;
+      const countdownEl = document.getElementById('countdown');
+      const refreshLink = document.getElementById('refreshCode');
+      
+      refreshLink.style.pointerEvents = 'none';
+      refreshLink.style.color = '#94a3b8';
+      refreshLink.style.textDecoration = 'none';
+      
+      countdownTimer = setInterval(() => {
+        countdownEl.textContent = `${timeLeft}秒后可重新发送`;
+        timeLeft--;
+        
+        if (timeLeft < 0) {
+          clearInterval(countdownTimer);
+          countdownEl.textContent = '';
+          refreshLink.style.pointerEvents = 'auto';
+          refreshLink.style.color = '#4a6cf7';
+          refreshLink.style.textDecoration = 'underline';
+        }
+      }, 1000);
+    }
+
+    // 显示登录错误
+    function showLoginError(message) {
+      const errorEl = document.getElementById('loginError');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      document.getElementById('loginSuccess').style.display = 'none';
+    }
+
+    // 显示登录成功消息
+    function showLoginSuccess(message) {
+      const successEl = document.getElementById('loginSuccess');
+      successEl.textContent = message;
+      successEl.style.display = 'block';
+      document.getElementById('loginError').style.display = 'none';
+    }
+
+    // 隐藏登录消息
+    function hideLoginMessages() {
+      document.getElementById('loginError').style.display = 'none';
+      document.getElementById('loginSuccess').style.display = 'none';
+    }
+
+    function showMessage(text, isSuccess = true) {
+      const messageEl = document.getElementById('message');
+      messageEl.textContent = text;
+      messageEl.className = `message ${isSuccess ? 'success' : 'error'}`;
+      messageEl.style.display = 'block';
+      setTimeout(() => {
+        messageEl.style.display = 'none';
+      }, 3000);
+    }
+
+    // 更新联系方式预览
+    function updateContactPreview() {
+      const contactInput = document.getElementById('contact');
+      const previewEl = document.getElementById('contactPreview');
+      const contactValue = contactInput.value.trim();
+      
+      if (!contactValue) {
+        previewEl.innerHTML = '';
+        return;
+      }
+      
+      const contacts = parseContacts(contactValue);
+      let previewHtml = '';
+      
+      contacts.forEach(contact => {
+        const { type } = contact;
+        let iconClass = '';
+        
+        switch (type) {
+          case 'qq':
+            iconClass = 'fab fa-qq';
+            break;
+          case 'wechat':
+            iconClass = 'fab fa-weixin';
+            break;
+          case 'website':
+            iconClass = 'fas fa-globe';
+            break;
+          case 'discord':
+            iconClass = 'fab fa-discord';
+            break;
+          default:
+            iconClass = 'fas fa-share-alt';
+        }
+        
+        previewHtml += `
+          <div class="contact-preview-item ${type}">
+            <i class="${iconClass}"></i>
+          </div>
+        `;
+      });
+      
+      previewEl.innerHTML = previewHtml;
+    }
+
+    // 解析联系方式字符串
+    function parseContacts(contactStr) {
+      const contacts = [];
+      const parts = contactStr.split(',');
+      
+      for (const part of parts) {
+        const [type, value] = part.split(':');
+        if (type && value) {
+          contacts.push({ type: type.trim(), value: value.trim() });
+        } else if (/^\d+$/.test(part.trim())) {
+          // 纯数字视为QQ
+          contacts.push({ type: 'qq', value: part.trim() });
+        } else if (part.trim().startsWith('http')) {
+          // 链接视为网站
+          contacts.push({ type: 'website', value: part.trim() });
+        } else if (part.trim()) {
+          // 其他情况视为未知类型
+          contacts.push({ type: 'unknown', value: part.trim() });
+        }
+      }
+      
+      return contacts;
+    }
+
+    async function fetchServers() {
+      const serverListEl = document.getElementById('serverList');
+      serverListEl.innerHTML = '<div>加载中...</div>';
+
+      try {
+        const res = await fetch(API.getServers);
+        const result = await safeJsonParse(res);
+
+        if (!result.success) {
+          serverListEl.innerHTML = `<div class="empty"><i class="fas fa-exclamation-circle"></i> 获取失败：${result.error}</div>`;
+          return;
+        }
+
+        const servers = result.data || [];
+        if (servers.length === 0) {
+          serverListEl.innerHTML = '<div class="empty"><i class="fas fa-box-open"></i> 暂无服务器，点击上方添加</div>';
+          return;
+        }
+
+        let html = '';
+        servers.forEach(server => {
+          // 解析联系方式并生成预览
+          let contactPreviewHtml = '';
+          if (server.contact) {
+            const contacts = parseContacts(server.contact);
+            contactPreviewHtml = contacts.map(contact => {
+              let iconClass = '';
+              
+              switch (contact.type) {
+                case 'qq':
+                  iconClass = 'fab fa-qq';
+                  break;
+                case 'wechat':
+                  iconClass = 'fab fa-weixin';
+                  break;
+                case 'website':
+                  iconClass = 'fas fa-globe';
+                  break;
+                case 'discord':
+                  iconClass = 'fab fa-discord';
+                  break;
+                default:
+                  iconClass = 'fas fa-share-alt';
+              }
+              
+              return `<div class="contact-preview-item ${contact.type}"><i class="${iconClass}"></i></div>`;
+            }).join('');
+          }
+
+          html += `
+            <div class="server-item">
+              <div class="server-info">
+                <div class="server-name">${server.name}</div>
+                <div class="server-desc">
+                  <span><i class="fas fa-map-marker-alt"></i> ${server.host}:${server.port || 25565}</span>
+                  ${server.contact ? `
+                    <span>
+                      <i class="fas fa-link"></i> 
+                      <span class="contact-tag">联系方式：</span>
+                      <div style="display: inline-flex; gap: 5px; margin-left: 5px;">
+                        ${contactPreviewHtml}
+                      </div>
+                    </span>
+                  ` : ''}
+                </div>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="editServer('${server.id}')">
+                  <i class="fas fa-edit"></i> 编辑
+                </button>
+                <button class="btn btn-danger" onclick="deleteServer('${server.id}', '${server.name}')">
+                  <i class="fas fa-trash"></i> 删除
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        serverListEl.innerHTML = html;
+      } catch (error) {
+        serverListEl.innerHTML = `<div class="empty"><i class="fas fa-exclamation-circle"></i> 加载失败：${error.message}</div>`;
+        console.error('获取服务器列表失败:', error);
+      }
+    }
+
+    async function addServer() {
+      const name = document.getElementById('name').value.trim();
+      const host = document.getElementById('host').value.trim();
+      const port = document.getElementById('port').value.trim() || 25565;
+      const description = document.getElementById('description').value.trim();
+      const contact = document.getElementById('contact').value.trim();
+
+      if (!name || !host) {
+        showMessage('名称和地址不能为空', false);
+        return;
+      }
+
+      try {
+        const res = await fetch(API.addServer, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name, 
+            host, 
+            port, 
+            description,
+            contact
+          })
+        });
+
+        const result = await safeJsonParse(res);
+        if (result.success) {
+          showMessage('添加服务器成功！');
+          document.getElementById('addServerForm').reset();
+          document.getElementById('contactPreview').innerHTML = '';
+          fetchServers();
+        } else {
+          showMessage(`添加失败：${result.error}`, false);
+        }
+      } catch (error) {
+        showMessage(`添加失败：${error.message}`, false);
+        console.error('添加服务器失败:', error);
+      }
+    }
+
+    async function editServer(serverId) {
+      try {
+        const res = await fetch(API.getServers);
+        const result = await safeJsonParse(res);
+        const server = result.data.find(s => s.id === serverId);
+        if (!server) {
+          showMessage('服务器不存在', false);
+          return;
+        }
+
+        const newName = prompt('输入新的服务器名称', server.name);
+        if (newName === null) return;
+        const newHost = prompt('输入新的服务器地址', server.host);
+        if (newHost === null) return;
+        const newPort = prompt('输入新的服务器端口', server.port || 25565);
+        if (newPort === null) return;
+        const newDesc = prompt('输入新的服务器描述', server.description || '');
+        if (newDesc === null) return;
+        const newContact = prompt('输入新的联系方式（多种方式用逗号分隔）', server.contact || '');
+        if (newContact === null) return;
+
+        const updateRes = await fetch(API.updateServer(serverId), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newName.trim(),
+            host: newHost.trim(),
+            port: newPort.trim() || 25565,
+            description: newDesc.trim(),
+            contact: newContact.trim()
+          })
+        });
+
+        const updateResult = await safeJsonParse(updateRes);
+        if (updateResult.success) {
+          showMessage('编辑服务器成功！');
+          fetchServers();
+        } else {
+          showMessage(`编辑失败：${updateResult.error}`, false);
+        }
+      } catch (error) {
+        showMessage(`编辑失败：${error.message}`, false);
+        console.error('编辑服务器失败:', error);
+      }
+    }
+
+    async function deleteServer(serverId, serverName) {
+      if (!confirm(`确定要删除服务器"${serverName}"吗？`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(API.deleteServer(serverId), { method: 'DELETE' });
+        const result = await safeJsonParse(res);
+
+        if (result.success) {
+          showMessage('删除服务器成功！');
+          fetchServers();
+        } else {
+          showMessage(`删除失败：${result.error}`, false);
+        }
+      } catch (error) {
+        showMessage(`删除失败：${error.message}`, false);
+        console.error('删除服务器失败:', error);
+      }
+    }
+
+    // 简化的 JSON 解析容错函数
+    async function safeJsonParse(response) {
+      try {
+        if (!response.ok) {
+          throw new Error(`HTTP错误：${response.status} ${response.statusText}`);
+        }
+        
+        const text = await response.text();
+        if (!text) {
+          throw new Error('服务器返回空内容');
+        }
+        
+        return JSON.parse(text);
+      } catch (err) {
+        console.error('JSON解析失败:', err);
+        throw new Error(`请求失败：${err.message}`);
+      }
+    }
+  </script>
+</body>
+</html>

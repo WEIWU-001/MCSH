@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft服务器列表</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4a6cf7;
+      --primary-light: #6b85f8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray: #94a3b8;
+      --border: #e2e8f0;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+    
+    body {
+      background-color: #f1f5f9;
+      color: var(--dark);
+      line-height: 1.6;
+      padding: 30px 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+    
+    .header-desc {
+      color: var(--gray);
+      font-size: 1.1rem;
+    }
+    
+    .server-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 25px;
+      margin: 30px 0 60px;
+    }
+    
+    .server-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      border-top: 4px solid var(--primary);
+      overflow: hidden;
+    }
+    
+    .server-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .server-card h3 {
+      color: var(--dark);
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      font-weight: 500;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .server-card h3 i {
+      color: var(--primary);
+    }
+    
+    .server-info {
+      margin: 12px 0;
+      color: #475569;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .server-info i {
+      width: 20px;
+      color: var(--primary-light);
+    }
+    
+    .status {
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .online {
+      color: white;
+      background-color: var(--success);
+      animation: pulse 2s infinite;
+    }
+    
+    .offline {
+      color: white;
+      background-color: var(--danger);
+    }
+    
+    /* 联系方式样式 */
+    .contact-section {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px dashed #e2e8f0;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .contact-item {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .contact-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.2rem;
+      transition: var(--transition);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .contact-icon:hover {
+      transform: scale(1.1);
+    }
+    
+    .contact-icon.qq {
+      background-color: #1da1f2;
+    }
+    
+    .contact-icon.wechat {
+      background-color: #07c160;
+    }
+    
+    .contact-icon.website {
+      background-color: var(--success);
+    }
+    
+    .contact-icon.discord {
+      background-color: #5865f2;
+    }
+    
+    .contact-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--dark);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+      z-index: 10;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .contact-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--dark);
+    }
+    
+    .contact-item:hover .contact-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    /* 状态提示统一样式 */
+    .loading, .error, .empty {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--gray);
+      font-size: 1.1rem;
+    }
+    
+    .loading i, .error i, .empty i {
+      margin-right: 8px;
+      font-size: 1.3rem;
+    }
+    
+    /* 社区加入区域 */
+    .cta-section {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 40px 20px;
+      margin: 50px 0;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+    }
+    
+    .cta-section h2 {
+      margin-bottom: 15px;
+      font-weight: 500;
+      font-size: 1.8rem;
+    }
+    
+    .cta-section p {
+      max-width: 700px;
+      margin: 0 auto 25px;
+      opacity: 0.9;
+      font-size: 1.05rem;
+    }
+    
+    .join-btn {
+      background: white;
+      color: var(--primary);
+      border: none;
+      padding: 14px 30px;
+      border-radius: 30px;
+      font-size: 1.05rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .join-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 20px 0;
+      color: var(--gray);
+      font-size: 0.9rem;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 40px;
+    }
+    
+    /* 动画 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .server-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .cta-section h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-cube"></i> Minecraft服务器列表</h1>
+      <p class="header-desc">探索优质MC服务器，开启你的方块冒险</p>
+    </header>
+    
+    <div id="serverList" class="server-grid">
+      <div class="loading"><i class="fas fa-spinner fa-spin"></i> 加载服务器列表中...</div>
+    </div>
+    
+    <!-- 社区加入区域 -->
+    <div class="cta-section">
+      <h2>加入我们的MC社区</h2>
+      <p>无论你是萌新还是老玩家，这里都有你的一席之地。分享游戏经验，结交同好，一起建设更精彩的方块世界！</p>
+      <a href="#" class="join-btn" id="joinButton">
+        <i class="fas fa-users"></i> 立即加入社区
+      </a>
+    </div>
+    
+    <footer>
+      <p>© 2025 Minecraft服务器列表 | 精心筛选优质MC服务器</p>
+    </footer>
+  </div>
+
+  <script>
+    const API = {
+      getServers: '/api/servers',
+      getStatus: (id) => `/api/servers/${id}/status`
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await renderServers();
+      setInterval(renderServers, 60000);
+      
+      // 加入按钮事件
+      document.getElementById('joinButton').addEventListener('click', function(e) {
+        e.preventDefault();
+        alert('社区链接即将上线，敬请期待！');
+      });
+    });
+
+    async function renderServers() {
+      const serverListEl = document.getElementById('serverList');
+      serverListEl.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> 加载服务器列表中...</div>';
+
+      try {
+        const res = await fetch(API.getServers);
+        const result = await safeJsonParse(res);
+
+        if (!result.success) {
+          serverListEl.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> 错误：${result.error || '未知错误'}</div>`;
+          return;
+        }
+
+        const servers = result.data || [];
+        if (servers.length === 0) {
+          serverListEl.innerHTML = '<div class="empty"><i class="fas fa-box-open"></i> 暂无服务器数据，请联系管理员添加</div>';
+          return;
+        }
+
+        // 并行获取所有服务器状态
+        const serverData = await Promise.all(
+          servers.map(async (server) => ({
+            server,
+            status: await getServerStatusSafe(server.id)
+          }))
+        );
+        
+        let html = '';
+        serverData.forEach(({ server, status }) => {
+          // 生成联系方式HTML
+          const contactHtml = server.contact 
+            ? `
+              <div class="contact-section">
+                ${parseContacts(server.contact).map(generateContactIcon).join('')}
+              </div>
+            ` 
+            : '';
+
+          html += `
+            <div class="server-card">
+              <h3><i class="fas fa-server"></i>${server.name || '未知服务器'}</h3>
+              <div class="server-info">
+                <i class="fas fa-map-marker-alt"></i>
+                地址：${server.host || '未知'}:${server.port || 25565}
+              </div>
+              <div class="server-info">
+                <i class="fas fa-signal"></i>
+                状态：<span class="status ${status.online ? 'online' : 'offline'}">
+                  ${status.online ? '<i class="fas fa-check"></i>在线' : '<i class="fas fa-times"></i>离线'}
+                </span>
+              </div>
+              <div class="server-info">
+                <i class="fas fa-users"></i>
+                玩家：${status.players || 0}/${status.maxPlayers || 0}
+              </div>
+              <div class="server-info">
+                <i class="fas fa-code-branch"></i>
+                版本：${status.version || '未知'}
+              </div>
+              <div class="server-info">
+                <i class="fas fa-comment-alt"></i>
+                描述：${server.description || '无'}
+              </div>
+              ${contactHtml}
+            </div>
+          `;
+        });
+        
+        serverListEl.innerHTML = html;
+      } catch (error) {
+        console.error('加载异常:', error);
+        serverListEl.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> 加载失败：${error.message || '网络异常'}</div>`;
+      }
+    }
+
+    // 解析联系方式字符串
+    function parseContacts(contactStr) {
+      const contacts = [];
+      contactStr.split(',').forEach(part => {
+        const [type, value] = part.split(':');
+        if (type && value) {
+          contacts.push({ type: type.trim(), value: value.trim() });
+        } else if (/^\d+$/.test(part.trim())) {
+          contacts.push({ type: 'qq', value: part.trim() });
+        } else if (part.trim().startsWith('http')) {
+          contacts.push({ type: 'website', value: part.trim() });
+        }
+      });
+      return contacts;
+    }
+
+    // 生成联系方式图标
+    function generateContactIcon(contact) {
+      const { type, value } = contact;
+      let iconClass = '';
+      let tooltipText = '';
+      let url = '';
+
+      switch (type) {
+        case 'qq':
+          iconClass = 'fab fa-qq';
+          tooltipText = `QQ: ${value}`;
+          url = `tencent://message/?uin=${value}&Site=&Menu=yes`;
+          break;
+        case 'wechat':
+          iconClass = 'fab fa-weixin';
+          tooltipText = `微信: ${value}`;
+          url = '';
+          break;
+        case 'website':
+          iconClass = 'fas fa-globe';
+          tooltipText = `网站: ${value}`;
+          url = value;
+          break;
+        case 'discord':
+          iconClass = 'fab fa-discord';
+          tooltipText = `Discord: ${value}`;
+          url = value.startsWith('http') ? value : `https://discord.gg/${value}`;
+          break;
+        default:
+          iconClass = 'fas fa-share-alt';
+          tooltipText = `${type}: ${value}`;
+      }
+      
+      // 如果有链接，创建可点击的图标
+      if (url) {
+        return `
+          <div class="contact-item">
+            <a href="${url}" class="contact-icon ${type}" target="_blank" rel="noopener noreferrer">
+              <i class="${iconClass}"></i>
+            </a>
+            <div class="contact-tooltip">${tooltipText}</div>
+          </div>
+        `;
+      } else {
+        // 没有链接，创建静态图标
+        return `
+          <div class="contact-item">
+            <div class="contact-icon ${type}">
+              <i class="${iconClass}"></i>
+            </div>
+            <div class="contact-tooltip">${tooltipText}</div>
+          </div>
+        `;
+      }
+    }
+
+    // 安全获取服务器状态（带超时）
+    async function getServerStatusSafe(serverId) {
+      try {
+        // 使用 AbortController 设置超时
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+        
+        const res = await fetch(API.getStatus(serverId), { 
+          signal: controller.signal 
+        });
+        
+        clearTimeout(timeoutId);
+        const result = await safeJsonParse(res);
+        return result.data || { online: false, players: 0, maxPlayers: 0, version: '未知' };
+      } catch (err) {
+        console.error(`查询状态失败（ID:${serverId}）:`, err);
+        return { online: false, players: 0, maxPlayers: 0, version: '查询失败' };
+      }
+    }
+
+    // 简化的 JSON 解析容错函数
+    async function safeJsonParse(response) {
+      try {
+        if (!response.ok) {
+          throw new Error(`HTTP错误：${response.status} ${response.statusText}`);
+        }
+        
+        const text = await response.text();
+        if (!text) {
+          throw new Error('服务器返回空内容');
+        }
+        
+        return JSON.parse(text);
+      } catch (err) {
+        console.error('JSON解析失败:', err);
+        throw new Error(`请求失败：${err.message}`);
+      }
+    }
+  </script>
+</body>
+</html>
