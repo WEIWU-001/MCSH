@@ -93,6 +93,13 @@ const PORT = 8080; // 可改为3000、5000等未占用端口
 ```
 （3）配置 MC-API 对接
 确保 public/index.html 和 public/admin.html 中调用 MC-API 的地址与你的 MC-API 服务地址一致（若同服务器部署，可保持默认）。
+（4）配置社区链接
+在index.html 第344行修改#的内容为你的社区
+```
+<a href="#" class="join-btn" id="joinButton" target="_blank" rel="noopener noreferrer">
+        <i class="fas fa-users"></i> 立即加入社区
+```
+
 ### 步骤 4：启动服务
 开发模式（调试用，热重载）
 ```
