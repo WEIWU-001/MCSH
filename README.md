@@ -115,15 +115,23 @@ npm start
 ## 三、生产环境守护（可选）
 推荐使用PM2保持服务长期运行：
 全局安装 PM2：
-bash
+```
 npm install -g pm2
+```
+
 启动并守护服务：
-bash
+```
 pm2 start server.js --name mc-server-manager
+```
+
 查看状态 / 日志：
-bash
+```
 pm2 status
+```
+```
 pm2 logs mc-server-manager
+```
+
 ## 四、常见问题
 邮箱验证码收不到？
 检查 SMTP 配置、端口、账号密码 / 授权码是否正确，确保邮箱未限制第三方登录。
