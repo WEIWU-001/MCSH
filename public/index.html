@@ -15,9 +15,8 @@
       --dark: #1e293b;
       --light: #f8fafc;
       --gray: #94a3b8;
-      --border: #e2e8f0;
-      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-      --transition: all 0.3s ease;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     * {
@@ -31,25 +30,26 @@
       background-color: #f1f5f9;
       color: var(--dark);
       line-height: 1.6;
-      padding: 30px 0;
+      padding-bottom: 50px;
     }
     
     .container {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 0 20px;
     }
     
     header {
+      padding: 30px 0;
       text-align: center;
-      margin-bottom: 30px;
+      animation: fadeIn 0.8s ease-out;
     }
     
     h1 {
       color: var(--primary);
       font-weight: 700;
       margin-bottom: 10px;
-      font-size: 2rem;
+      font-size: 2.2rem;
     }
     
     .header-desc {
@@ -130,7 +130,7 @@
       background-color: var(--danger);
     }
     
-    /* 联系方式样式 */
+    /* 联系方式图标样式 */
     .contact-section {
       margin-top: 20px;
       padding-top: 15px;
@@ -152,6 +152,7 @@
       width: 40px;
       height: 40px;
       border-radius: 50%;
+      background-color: var(--primary-light);
       color: white;
       font-size: 1.2rem;
       transition: var(--transition);
@@ -160,6 +161,7 @@
     }
     
     .contact-icon:hover {
+      background-color: var(--primary);
       transform: scale(1.1);
     }
     
@@ -167,16 +169,32 @@
       background-color: #1da1f2;
     }
     
+    .contact-icon.qq:hover {
+      background-color: #0d95e8;
+    }
+    
     .contact-icon.wechat {
       background-color: #07c160;
+    }
+    
+    .contact-icon.wechat:hover {
+      background-color: #06ae56;
     }
     
     .contact-icon.website {
       background-color: var(--success);
     }
     
+    .contact-icon.website:hover {
+      background-color: #16a34a;
+    }
+    
     .contact-icon.discord {
       background-color: #5865f2;
+    }
+    
+    .contact-icon.discord:hover {
+      background-color: #4752c4;
     }
     
     .contact-tooltip {
@@ -213,7 +231,6 @@
       visibility: visible;
     }
     
-    /* 状态提示统一样式 */
     .loading, .error, .empty {
       text-align: center;
       padding: 50px 20px;
@@ -324,7 +341,7 @@
     <div class="cta-section">
       <h2>加入我们的MC社区</h2>
       <p>无论你是萌新还是老玩家，这里都有你的一席之地。分享游戏经验，结交同好，一起建设更精彩的方块世界！</p>
-      <a href="#" class="join-btn" id="joinButton">
+      <a href="#" class="join-btn" id="joinButton" target="_blank" rel="noopener noreferrer">
         <i class="fas fa-users"></i> 立即加入社区
       </a>
     </div>
@@ -344,10 +361,11 @@
       await renderServers();
       setInterval(renderServers, 60000);
       
-      // 加入按钮事件
-      document.getElementById('joinButton').addEventListener('click', function(e) {
-        e.preventDefault();
-        alert('社区链接即将上线，敬请期待！');
+      // 🔥 移除阻止跳转的事件监听，保留空函数（或直接删除这部分）
+      // 按钮会自动触发默认跳转，无需额外逻辑
+      document.getElementById('joinButton').addEventListener('click', function() {
+        // 可选：添加跳转前的友好提示（不阻止跳转）
+        // alert('欢迎加入MC社区！');
       });
     });
 
@@ -370,24 +388,26 @@
           return;
         }
 
-        // 并行获取所有服务器状态
-        const serverData = await Promise.all(
-          servers.map(async (server) => ({
-            server,
-            status: await getServerStatusSafe(server.id)
-          }))
-        );
+        // 并行获取所有服务器的状态
+        const serverPromises = servers.map(async (server) => {
+          const status = await getServerStatusSafe(server.id);
+          return { server, status };
+        });
+
+        const serverData = await Promise.all(serverPromises);
         
         let html = '';
-        serverData.forEach(({ server, status }) => {
-          // 生成联系方式HTML
-          const contactHtml = server.contact 
-            ? `
+        for (const { server, status } of serverData) {
+          // 处理联系方式：生成图标和提示
+          let contactHtml = '';
+          if (server.contact) {
+            const contacts = parseContacts(server.contact);
+            contactHtml = `
               <div class="contact-section">
-                ${parseContacts(server.contact).map(generateContactIcon).join('')}
+                ${contacts.map(contact => generateContactIcon(contact)).join('')}
               </div>
-            ` 
-            : '';
+            `;
+          }
 
           html += `
             <div class="server-card">
@@ -414,11 +434,11 @@
                 <i class="fas fa-comment-alt"></i>
                 描述：${server.description || '无'}
               </div>
+              <!-- 联系方式区域 -->
               ${contactHtml}
             </div>
           `;
-        });
-        
+        }
         serverListEl.innerHTML = html;
       } catch (error) {
         console.error('加载异常:', error);
@@ -428,17 +448,23 @@
 
     // 解析联系方式字符串
     function parseContacts(contactStr) {
+      // 支持多种格式：qq:123456,wechat:wxid,website:https://...
       const contacts = [];
-      contactStr.split(',').forEach(part => {
+      const parts = contactStr.split(',');
+      
+      for (const part of parts) {
         const [type, value] = part.split(':');
         if (type && value) {
           contacts.push({ type: type.trim(), value: value.trim() });
         } else if (/^\d+$/.test(part.trim())) {
+          // 纯数字视为QQ
           contacts.push({ type: 'qq', value: part.trim() });
         } else if (part.trim().startsWith('http')) {
+          // 链接视为网站
           contacts.push({ type: 'website', value: part.trim() });
         }
-      });
+      }
+      
       return contacts;
     }
 
@@ -448,7 +474,7 @@
       let iconClass = '';
       let tooltipText = '';
       let url = '';
-
+      
       switch (type) {
         case 'qq':
           iconClass = 'fab fa-qq';
@@ -458,7 +484,7 @@
         case 'wechat':
           iconClass = 'fab fa-weixin';
           tooltipText = `微信: ${value}`;
-          url = '';
+          // 微信没有直接跳转链接，可以留空或使用其他方式
           break;
         case 'website':
           iconClass = 'fas fa-globe';
@@ -498,7 +524,6 @@
       }
     }
 
-    // 安全获取服务器状态（带超时）
     async function getServerStatusSafe(serverId) {
       try {
         // 使用 AbortController 设置超时
