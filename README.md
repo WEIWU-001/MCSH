@@ -2,6 +2,24 @@
 
 一个基于 Node.js 的 Minecraft 服务器状态展示系统，联动 MC-API（https://github.com/WEIWU-001/MC-API） 实现服务器状态实时监控与可视化管理。
 
+## 📸 演示截图
+
+<details>
+<summary><b>前端</b></summary>
+<img src="https://wwdjia.top/wp-content/uploads/2025/11/index.png" alt="前端" width="100%">
+</details>
+
+<details>
+<summary><b>邮箱验证码</b></summary>
+<img src="https://wwdjia.top/wp-content/uploads/2025/11/email.png" alt="邮箱验证码" width="100%">
+</details>
+
+<details>
+<summary><b>后端</b></summary>
+<img src="https://wwdjia.top/wp-content/uploads/2025/11/admin.png" alt="后端" width="100%">
+</details>
+
+
 ## 核心功能
 - 📋 前端展示：服务器列表、在线状态、玩家数量、版本信息
 - 🔧 管理员后台：验证码登录，支持服务器增删改查
