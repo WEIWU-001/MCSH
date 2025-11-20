@@ -11,7 +11,7 @@
 
 <details>
 <summary><b>邮箱验证码</b></summary>
-<img src="https://wwdjia.top/wp-content/uploads/2025/11/email.png" alt="邮箱验证码" width="100%">
+<img src="https://wwdjia.top/wp-content/uploads/2025/11/email-e1763637807176.png" alt="邮箱验证码" width="100%">
 </details>
 
 <details>
